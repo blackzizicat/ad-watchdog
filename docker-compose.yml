@@ -1,0 +1,53 @@
+# docker-compose.yml
+
+services:
+  chainsaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 必要ならビルド時に変更
+        CHAINSAW_VERSION: "v2.13.1"
+        CHAINSAW_ASSET: "chainsaw_x86_64-unknown-linux-gnu.tar.gz"
+    image: chainsaw
+    container_name: chainsaw
+    environment:
+      # ====== 入力フォルダ / 出力フォルダ ======
+      EVTX_ROOT: "/workspace/evtx"
+      REPORTS_DIR: "/workspace/reports"
+
+      # ====== Chainsaw 引数 ======
+      CHAINS_MODE: "hunt"                 # hunt | search
+      CHAINS_FORMAT: "csv"               # csv | json | log
+      CHAINS_LEVELS: "critical,high,medium"     # 例: "critical,high,medium"（空で全レベル）
+      LOCAL_TIME: "true"                 # true なら --local（ローカル時刻）
+      TIMEZONE: "Asia/Tokyo"             # または --timezone に渡す文字列（例: "UTC"）
+      FROM: "" # 例: "2025-11-21T00:00:00"
+      TO: ""    # 例: "2025-11-22T00:00:00"
+      EXTENSIONS: ".evtx"                # 複数なら ".evtx,.xml,.jsonl" 等
+
+      # ====== ルール / マッピング ======
+      SIGMA_DIR: "/workspace/sigma"      # Sigma ルールディレクトリ
+      MAPPING_YML: "/workspace/mappings/sigma-event-logs-all.yml"
+      CHAINS_RULE_DIR: ""                # 例: "/workspace/chainsaw_rules"（任意）
+
+      # ====== 並列実行（ホスト単位） ======
+      THREADS: "8"                       # 同時に処理するホストの数
+
+      # ====== メール設定（検出あり時のみ送信） ======
+      SMTP_HOST: "ccmail.kyoto-su.ac.jp"
+      SMTP_PORT: "25"
+      SMTP_TLS: "true"                   # true -> STARTTLS / false -> 平文
+      #SMTP_USER: "alert_sender"
+      #SMTP_PASS: "REPLACE_WITH_SECRET"
+      MAIL_FROM: "center-windows@cc.kyoto-su.ac.jp"
+      #MAIL_TO: "center-windows@cc.kyoto-su.ac.jp"  # カンマ区切り
+      MAIL_TO: "kshinjo@cc.kyoto-su.ac.jp"  # カンマ区切り
+      MAIL_SUBJECT_PREFIX: "[Chainsaw Detection]"
+
+      # ====== ログの詳細 ======
+      QUIET: "false"                      # true -> Chainsaw の情報出力を抑止(-q)
+    volumes:
+      - ./:/workspace:rw
+    # 実行完了で終了（常時起動は不要）
+    restart: "no"

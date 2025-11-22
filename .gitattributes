@@ -1,0 +1,8 @@
+# YAMLファイルは常にLF
+*.yml text eol=lf
+
+# PowerShellスクリプトはCRLF（Windows環境向け）
+*.ps1 text eol=crlf
+
+# シェルスクリプトはLF（Linux環境向け）
+*.sh text eol=lf
